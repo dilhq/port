@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Figma - Dilip_Portfolio_v1.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono&display=swap');
+        
+        :root {
+            --canvas: #F5F5F5;
+            --card-bg: #FFFFFF;
+            --text: #000000;
+            --border: #E6E6E6;
+            --figma-blue: #18A0FB;
+            --grid-dot: #D1D1D1; /* Crisp light-mode dots */
+        }
+
+        .dark {
+            --canvas: #1E1E1E;
+            --card-bg: #2C2C2C;
+            --text: #FFFFFF;
+            --border: #444444;
+            --figma-blue: #0D99FF;
+            --grid-dot: #333333; /* Crisp dark-mode dots */
+        }
+
+        body {
+            background-color: var(--canvas);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            transition: background 0.4s ease, color 0.4s ease;
+            cursor: crosshair;
+        }
+
+        /* FIXED: Crisp Dotted Grid with no white blur */
+        .canvas-grid {
+            background-image: radial-gradient(var(--grid-dot) 1px, transparent 0px);
+            background-size: 32px 32px;
+            opacity: 1;
+        }
+
+        /* The Card */
+        .artboard {
+            background: var(--card-bg);
+            border: 2px solid var(--figma-blue);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.12);
+            transition: all 0.4s ease;
+        }
+
+        .artboard-label {
+            font-size: 11px;
+            color: var(--figma-blue);
+            font-weight: 600;
+        }
+
+        .measure-line {
+            position: absolute;
+            border: 1px dashed #FF4F4F;
+            color: #FF4F4F;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+        }
+
+        #cursor {
+            pointer-events: none;
+            position: fixed;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: #1E1E1E;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.6s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col dark">
+
+    <div id="loader">
+        <div class="flex flex-col items-center gap-4">
+            <div class="w-12 h-12 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-white font-mono text-xs tracking-widest uppercase">Fetching Assets...</p>
+        </div>
+    </div>
+
+    <div id="cursor">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M0 0L14 5.6L7 7L5.6 14L0 0Z" fill="#18A0FB"/></svg>
+        <div class="bg-[#18A0FB] text-white px-1.5 py-0.5 rounded-sm text-[9px] font-bold">Dilip</div>
+    </div>
+
+    <nav class="h-12 bg-[#2C2C2C] border-b border-black flex items-center justify-between px-4 z-50 shrink-0">
+        <div class="flex items-center gap-6">
+            <div class="flex gap-1.5">
+                <div class="w-2.5 h-2.5 rounded-full bg-[#FF605C]"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-[#FFBD44]"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-[#00CA4E]"></div>
+            </div>
+            <span class="text-white/60 text-[11px] font-medium tracking-wide uppercase">Dilip_Yadav_Portfolio_v1.draft</span>
+        </div>
+        <div class="flex items-center gap-4">
+            <button onclick="toggleTheme()" class="bg-[#383838] hover:bg-[#444444] text-white/80 p-1.5 rounded border border-white/10 transition-colors">
+                <svg id="theme-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+            </button>
+            <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-[11px] text-white font-bold border border-white/20">DY</div>
+        </div>
+    </nav>
+
+    <div class="relative flex-grow canvas-grid flex items-center justify-center p-8 overflow-auto">
+        
+        <div class="relative w-full lg:w-[60%] artboard p-12 md:p-24 min-h-[400px] flex flex-col items-center justify-center text-center">
+            
+            <div class="absolute -top-6 left-0 artboard-label flex items-center gap-2">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M0 0H10V10H0V0Z" fill-opacity="0.2"/></svg>
+                MASTER_PORTFOLIO_V1
+            </div>
+
+            <div class="measure-line top-0 left-1/2 -translate-x-1/2 -translate-y-full h-12 border-x-0 border-t-0 flex items-center justify-center w-px">
+                <span class="bg-red-50 dark:bg-red-900 px-1">96px</span>
+            </div>
+
+            <h1 class="text-6xl md:text-8xl font-extrabold tracking-tighter italic mb-4">
+                Dilip Yadav
+            </h1>
+            
+            <p class="font-mono text-[10px] md:text-xs text-blue-500 uppercase tracking-[0.4em] mb-12">
+                // System Status: Launching Sprint v1.0
+            </p>
+
+            <a href="https://linkedin.com/in/yourprofile" target="_blank" 
+               class="group relative flex items-center gap-3 bg-blue-500 hover:bg-blue-600 text-white px-10 py-4 rounded-sm font-bold text-sm transition-all shadow-lg hover:shadow-blue-500/20">
+                <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.761 0 5-2.239 5-5v-14c0-2.761-2.239-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                LINKEDIN_COMPONENT
+            </a>
+
+            <div class="absolute -bottom-6 -right-4 md:right-10 bg-white dark:bg-[#333] border border-gray-200 dark:border-gray-700 p-3 rounded-lg rounded-tl-none shadow-xl text-left w-48 transition-colors">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-[10px] font-bold text-purple-500">Dilip Y.</span>
+                    <span class="text-[9px] text-gray-400">Now</span>
+                </div>
+                <p class="text-[11px] leading-tight text-gray-600 dark:text-gray-300">Working on the master portfolio. See you on the other side!</p>
+            </div>
+        </div>
+
+    </div>
+
+    <footer class="h-10 border-t border-gray-200 dark:border-gray-800 flex items-center justify-center bg-transparent transition-colors">
+        <p class="text-[9px] uppercase tracking-[0.5em] opacity-30 font-semibold">
+            vibe coded by the product manager on google gemini
+        </p>
+    </footer>
+
+    <script>
+        const cursor = document.getElementById('cursor');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 600);
+            }, 1000);
+        });
+
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            body.classList.toggle('dark');
+
+            if (body.classList.contains('dark')) {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />';
+            } else {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />';
+            }
+        }
+    </script>
+</body>
+</html>
