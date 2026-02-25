@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>VibePort // Aesthetic Lo-Fi Ambient Portal</title>
+    <meta name="description" content="A premium pixel-art ambient portal for focus and relaxation. Experience curated lo-fi vibes with high-quality rain sounds.">
+    <meta name="keywords" content="Lo-fi, Ambient, Rain Sounds, Productivity Tool, Pixel Art, Aesthetic, Batman Vibe">
+    <meta name="author" content="Dilip Yadav">
+    
+    <meta property="og:title" content="VibePort // Aesthetic Lo-Fi Portal">
+    <meta property="og:description" content="Switch between curated moods and get lost in the pixelated rain.">
+    <meta property="og:url" content="https://dilipyadav.me">
+    <meta property="og:type" content="website">
+
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --accent-cyan: #00f2ff;
+            --accent-pink: #ff79c6;
+            --accent-purple: #bb86fc;
+            --bg: #080808;
+            --pixel-border: 3px;
+        }
+
+        * { box-sizing: border-box; font-family: 'VT323', monospace; }
+
+        body, html {
+            margin: 0; padding: 0;
+            height: 100%; width: 100%;
+            background: var(--bg);
+            color: white;
+            overflow: hidden;
+        }
+
+        /* --- PERSISTENT HEADER --- */
+        #main-header {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2500;
+            opacity: 0;
+            transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+
+        .header-title {
+            font-size: 2.5rem;
+            letter-spacing: 12px;
+            color: var(--accent-cyan);
+            text-shadow: 2px 2px 0px #fff;
+        }
+
+        /* --- THE LOADER --- */
+        #loader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.8s ease, opacity 0.5s ease;
+        }
+
+        #loader.transparent {
+            background: rgba(8, 8, 8, 0.7);
+        }
+
+        .loader-logo {
+            font-size: 5rem;
+            letter-spacing: 12px;
+            color: var(--accent-cyan);
+            text-shadow: 4px 4px 0px #fff;
+            margin-bottom: 20px;
+            transition: all 1.2s ease;
+        }
+
+        .loader-quote {
+            font-size: 1.5rem;
+            color: #888;
+            animation: fadeInOut 3s infinite;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: translateY(10px); }
+            50% { opacity: 1; transform: translateY(0px); }
+        }
+
+        /* --- BACKGROUND --- */
+        #main-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+            z-index: 1;
+            filter: brightness(0.4) saturate(1.2);
+            transition: opacity 1.5s ease;
+        }
+
+        /* --- DIGITAL CLOCK --- */
+        #clock {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8rem;
+            opacity: 0.15;
+            z-index: 2;
+            letter-spacing: 10px;
+            pointer-events: none;
+            color: white;
+            text-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        /* --- SHADOW ECHO BUTTON --- */
+        .pixel-cta {
+            background: #fff;
+            color: #000;
+            border: var(--pixel-border) solid #000;
+            padding: 10px 25px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.15s ease-out;
+            display: inline-block;
+            white-space: nowrap;
+            min-width: 170px;
+        }
+
+        .pixel-cta:hover {
+            box-shadow: 5px 5px 0 var(--accent-pink), 10px 10px 0 var(--accent-purple), 15px 15px 0 var(--accent-cyan);
+            transform: translate(-5px, -5px);
+        }
+
+        .pixel-cta.active {
+            background: var(--accent-cyan);
+            color: #000;
+            box-shadow: 4px 4px 0px #fff;
+        }
+
+        .mood-deck {
+            position: fixed;
+            top: 85px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 30px;
+            z-index: 100;
+        }
+
+        .playback-cta {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            min-width: 180px;
+        }
+        
+        .playback-cta:hover {
+            transform: translate(calc(-50% - 5px), -5px) !important;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            position: fixed;
+            bottom: 15px;
+            width: 100%;
+            text-align: center;
+            font-size: 1.1rem;
+            z-index: 100;
+            text-shadow: 2px 2px 0px #000;
+            color: #fff;
+        }
+
+        footer a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+            border-bottom: 2px solid var(--accent-cyan);
+        }
+
+        .hidden { display: none !important; }
+        .transparent-bg { opacity: 0; }
+
+    </style>
+</head>
+<body>
+
+<audio id="rain-audio" src="rain.mp3" loop></audio>
+
+<div id="main-header">
+    <div class="header-title">VIBEPORT</div>
+</div>
+
+<div id="loader">
+    <div class="loader-logo" id="l-logo">VIBEPORT</div>
+    <div class="loader-quote" id="quote">"Lost in the pixelated rain..."</div>
+</div>
+
+<div id="clock">00:00:00</div>
+
+<div id="main-bg" class="transparent-bg"></div>
+
+<div class="mood-deck hidden" id="mood-deck">
+    <button class="pixel-cta active" onclick="changeMood('batman', this)">I'm Batman 🦇</button>
+    <button class="pixel-cta" onclick="changeMood('monday', this)">Blue Mon 💎</button>
+    <button class="pixel-cta" onclick="changeMood('romantic', this)">Soft Luv 💖</button>
+    <button class="pixel-cta" onclick="changeMood('mystic', this)">Mystic 🔮</button>
+</div>
+
+<button class="pixel-cta playback-cta hidden" id="play-pause">LISTEN... 🎧</button>
+
+<footer>
+    Vibe Coded by <a href="https://dilipyadav.me" target="_blank">Dilip Yadav</a> on <a href="https://gemini.google.com" target="_blank">Google Gemini</a>
+</footer>
+
+<script>
+    // Image filenames as requested
+    const vibes = {
+        batman: 'batman.jpg',
+        monday: 'monday.jpg',
+        romantic: 'romantic.jpg',
+        mystic: 'mystic.jpg'
+    };
+
+    const loader = document.getElementById('loader');
+    const lLogo = document.getElementById('l-logo');
+    const header = document.getElementById('main-header');
+    const bg = document.getElementById('main-bg');
+    const deck = document.getElementById('mood-deck');
+    const playPause = document.getElementById('play-pause');
+    const clockEl = document.getElementById('clock');
+    const audio = document.getElementById('rain-audio');
+    
+    let isPlaying = false;
+
+    // --- CLOCK ---
+    function updateClock() {
+        const now = new Date();
+        clockEl.innerText = now.toTimeString().split(' ')[0];
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // --- INITIAL LOAD ---
+    window.onload = () => {
+        // Preload Batman image
+        const img = new Image();
+        img.src = vibes.batman;
+        
+        setTimeout(() => {
+            //audio.volume = 0.4;
+            //audio.play().catch(e => console.log("Audio needs user interaction"));
+            
+            lLogo.style.opacity = '0';
+            document.getElementById('quote').style.opacity = '0';
+            
+            header.style.opacity = '1';
+            deck.classList.remove('hidden');
+            playPause.classList.remove('hidden');
+            bg.classList.remove('transparent-bg');
+            bg.style.backgroundImage = `url('${vibes.batman}')`;
+            
+            setTimeout(() => {
+                loader.classList.add('hidden');
+            }, 1000);
+        }, 3000);
+    };
+
+    // --- MOOD CHANGE ---
+    function changeMood(key, btn) {
+        loader.classList.remove('hidden');
+        loader.classList.add('transparent');
+        loader.style.opacity = '1';
+        
+        document.querySelectorAll('.pixel-cta').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        bg.style.opacity = 0;
+        
+        // Ensure image is in same folder
+        const nextImg = new Image();
+        nextImg.src = vibes[key];
+        nextImg.onload = () => {
+            setTimeout(() => {
+                bg.style.backgroundImage = `url('${vibes[key]}')`;
+                bg.style.opacity = 1;
+                setTimeout(() => {
+                    loader.style.opacity = '0';
+                    setTimeout(() => loader.classList.add('hidden'), 500);
+                }, 500);
+            }, 500);
+        };
+    }
+
+    // --- PLAYBACK ---
+    playPause.onclick = () => {
+        if (isPlaying) {
+            audio.pause();
+            playPause.innerText = "LISTEN... 🎧";
+        } else {
+            audio.play();
+            playPause.innerText = "SHHH... 🤫";
+        }
+        isPlaying = !isPlaying;
+    };
+
+</script>
+</body>
+</html>
