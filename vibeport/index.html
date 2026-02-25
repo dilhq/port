@@ -163,15 +163,15 @@
 
         .playback-cta {
             position: fixed;
-            bottom: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
-            min-width: 180px;
+    top: calc(50% + 100px); /* Adjust '100px' to move it closer or further from the clock */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    min-width: 180px;
         }
         
         .playback-cta:hover {
-            transform: translate(calc(-50% - 5px), -5px) !important;
+           transform: translate(calc(-50% - 5px), calc(-50% - 5px)) !important;
         }
 
         /* --- FOOTER --- */
