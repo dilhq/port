@@ -2,11 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Unbecome | Eat to Disappear</title>
+           <link rel="icon" type="image/x-icon" href="/favicon/favicon.ico">
+            <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+            <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+            <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png">
+            <link rel="icon" type="image/png" sizes="192x192" href="/favicon/android-chrome-192x192.png">
+            <link rel="icon" type="image/png" sizes="512x512" href="/favicon/android-chrome-512x512.png">
+            <link rel="manifest" href="/site.webmanifest">
     
-    <meta name="description" content="A meditative reverse snake game. Eat to disappear. Designed by Dilip Yadav.">
-    <meta name="keywords" content="Unbecome, reverse snake, aesthetic games, Dilip Yadav, minimalist game">
+     <title>Unbecome | Minimalist Aesthetic Snake Game</title>
+    <meta name="title" content="Unbecome | Minimalist Aesthetic Snake Game">
+<meta name="description" content="A cute, meditative reverse snake game. Eat to disappear in this minimalist HTML5 experience. Designed by Dilip Yadav.">
+<meta name="keywords" content="Unbecome, reverse snake, aesthetic games, cute html games, minimalist game, zen snake, web game, Dilip Yadav">
+
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://dilipyadav.me/unbecome">
+<meta property="og:title" content="Unbecome | The Aesthetic Reverse Snake Game">
+<meta property="og:description" content="A meditative twist on the classic snake. Focus on reduction and disappearing.">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -30,11 +42,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100dvh; /* Dynamic viewport for mobile */
+            height: 100dvh;
             margin: 0;
         }
 
-        /* --- THE MASTER BUTTON (Exact CSS Architecture) --- */
         .btn-juicy {
             position: relative;
             width: 10rem; height: 5rem;
@@ -62,10 +73,8 @@
         .btn-juicy:active .btn-juicy-top { top: 0.5rem; }
         .btn-text { font-weight: 900; font-size: 1.8rem; color: white; text-shadow: 0 2px #CB6329; pointer-events: none; }
 
-        /* --- GAME FRAME (Responsive) --- */
         #frame {
             position: fixed;
-            /* Safe area handling for notched phones */
             inset: calc(20px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) calc(20px + env(safe-area-inset-left));
             border: 12px solid #041661;
             border-radius: 24px;
@@ -103,6 +112,9 @@
         .footer {
             position: absolute;
             bottom: calc(30px + env(safe-area-inset-bottom));
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
             font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -134,7 +146,7 @@
     <div id="status-modal" class="modal hidden">
         <h1 id="status-title" class="text-5xl md:text-6xl font-black text-[#041661] mb-4">WHOOPS.</h1>
         <p id="status-quote" class="text-sm md:text-lg text-[#4B25B2] mb-8 italic px-10 text-center max-w-md"></p>
-        <div id="stats-box" class="mb-8">
+        <div id="stats-box" class="mb-8 text-center">
             <div class="text-gray-400 uppercase text-[10px] tracking-widest mb-1">Time Lived</div>
             <div id="final-time" class="text-4xl font-black text-[#041661]">00:00</div>
         </div>
@@ -162,8 +174,6 @@
         let snake = [], food = {}, dir = {x:1, y:0}, nextDir = {x:1, y:0};
         let lastTime = 0, startTime = 0, gameActive = false;
         let moveInterval = 185; 
-
-        // Touch Variables
         let tStartX = 0, tStartY = 0;
 
         const failQuotes = [
@@ -178,11 +188,10 @@
             "Poof. You disappeared in [TIME]. Total mastery.",
             "Nothingness achieved. [TIME] well spent.",
             "You are now officially 'Zero'. Congratulations?",
-            "It took [TIME] to achieve perfect emptiness. Beautiful.",
+            "It took [TIME] to achieve perfect emptiness.",
             "You've left the chat. [TIME] later, you finally succeeded."
         ];
 
-        // Audio
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSfx(type) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -207,10 +216,7 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             const isMobile = window.innerWidth < 768;
-            
-            // Dynamic Grid: Smaller segments for mobile for more room
-            GRID_SIZE = isMobile ? Math.floor(window.innerWidth / 35) : 35;
-            
+            GRID_SIZE = isMobile ? Math.floor(window.innerWidth / 28) : 35;
             const pad = 64; 
             TILE_X = Math.floor((canvas.width - pad) / GRID_SIZE);
             TILE_Y = Math.floor((canvas.height - pad) / GRID_SIZE);
@@ -220,7 +226,7 @@
             source === 'start' ? startModal.classList.add('hidden') : statusModal.classList.add('hidden');
             snake = [];
             const midX = Math.floor(TILE_X / 2), midY = Math.floor(TILE_Y / 2);
-            for(let i=0; i<10; i++) snake.push({x: midX - i, y: midY});
+            for(let i=0; i<20; i++) snake.push({x: midX - i, y: midY});
             dir = {x:1, y:0}; nextDir = {x:1, y:0};
             spawnFood();
             startTime = Date.now();
@@ -233,7 +239,6 @@
             if(snake.some(s => s.x === food.x && s.y === food.y)) spawnFood();
         }
 
-        // --- Inputs ---
         window.addEventListener('keydown', e => {
             if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) e.preventDefault();
             if(e.key === 'ArrowUp' && dir.y === 0) nextDir = {x:0, y:-1};
@@ -242,18 +247,11 @@
             if(e.key === 'ArrowRight' && dir.x === 0) nextDir = {x:1, y:0};
         });
 
-        canvas.addEventListener('touchstart', e => {
-            tStartX = e.touches[0].clientX; tStartY = e.touches[0].clientY;
-        }, {passive: false});
-
+        canvas.addEventListener('touchstart', e => { tStartX = e.touches[0].clientX; tStartY = e.touches[0].clientY; }, {passive: false});
         canvas.addEventListener('touchend', e => {
-            const dx = e.changedTouches[0].clientX - tStartX;
-            const dy = e.changedTouches[0].clientY - tStartY;
-            if (Math.abs(dx) > Math.abs(dy)) {
-                if (Math.abs(dx) > 30) nextDir = dx > 0 ? (dir.x===0?{x:1,y:0}:nextDir) : (dir.x===0?{x:-1,y:0}:nextDir);
-            } else {
-                if (Math.abs(dy) > 30) nextDir = dy > 0 ? (dir.y===0?{x:0,y:1}:nextDir) : (dir.y===0?{x:0,y:-1}:nextDir);
-            }
+            const dx = e.changedTouches[0].clientX - tStartX, dy = e.changedTouches[0].clientY - tStartY;
+            if (Math.abs(dx) > Math.abs(dy)) { if (Math.abs(dx) > 30) nextDir = dx > 0 ? (dir.x===0?{x:1,y:0}:nextDir) : (dir.x===0?{x:-1,y:0}:nextDir); }
+            else { if (Math.abs(dy) > 30) nextDir = dy > 0 ? (dir.y===0?{x:0,y:1}:nextDir) : (dir.y===0?{x:0,y:-1}:nextDir); }
         }, {passive: false});
 
         function update() {
@@ -294,15 +292,20 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const ox = (canvas.width - TILE_X * GRID_SIZE) / 2, oy = (canvas.height - TILE_Y * GRID_SIZE) / 2;
             const fx = food.x * GRID_SIZE + GRID_SIZE/2 + ox, fy = food.y * GRID_SIZE + GRID_SIZE/2 + oy;
+            
             ctx.fillStyle = "#FFB20F"; ctx.beginPath();
             for(let i=0; i<10; i++){
                 const a = (Math.PI/5)*i - (Math.PI/2), r = i%2===0 ? GRID_SIZE/2.2 : GRID_SIZE/5;
                 ctx.lineTo(fx + r*Math.cos(a), fy + r*Math.sin(a));
             }
             ctx.closePath(); ctx.fill();
+
             snake.forEach((s, i) => {
                 ctx.fillStyle = i === 0 ? "#4B25B2" : `rgba(167, 118, 245, ${1 - (i/snake.length)})`;
-                ctx.beginPath(); ctx.roundRect(s.x * GRID_SIZE + ox + 2, s.y * GRID_SIZE + oy + 2, GRID_SIZE-4, GRID_SIZE-4, 10); ctx.fill();
+                ctx.beginPath(); 
+                // Using Proportional Radius (GRID_SIZE / 4) for "Pebble" look
+                ctx.roundRect(s.x * GRID_SIZE + ox + 2, s.y * GRID_SIZE + oy + 2, GRID_SIZE-4, GRID_SIZE-4, GRID_SIZE / 4); 
+                ctx.fill();
             });
         }
 
