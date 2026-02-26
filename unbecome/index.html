@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Unbecome</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&display=swap');
+
+        body {
+            background-color: #f7f7f5;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            touch-action: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Juicy Button Structure */
+        .btn-juicy {
+            position: relative;
+            width: 10rem; height: 5rem;
+            background: #A776F5;
+            border-radius: 1.2rem;
+            transition: all 0.15s ease-out;
+            cursor: pointer;
+        }
+        .btn-juicy::before {
+            content: ''; position: absolute; border-radius: 1.2rem;
+            background: #4B25B2; width: 10rem; height: 5rem;
+            left: 0; top: 0.6rem; z-index: -1;
+        }
+        .btn-juicy-top {
+            position: absolute;
+            inset: 0;
+            background: #FFB20F;
+            border: 3px solid #CB6329;
+            border-radius: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            top: 0;
+            transition: all 0.1s ease-out;
+            box-shadow: inset 0 4px 0 rgba(255,255,255,0.4);
+        }
+        .btn-juicy:hover .btn-juicy-top { top: 0.2rem; }
+        .btn-juicy:active .btn-juicy-top { top: 0.5rem; }
+        .btn-text { font-weight: 900; font-size: 1.8rem; color: white; text-shadow: 0 2px #CB6329; pointer-events: none; }
+
+        /* Game Frame */
+        #frame {
+            position: fixed;
+            inset: 20px;
+            border: 12px solid #041661;
+            border-radius: 24px;
+            background: transparent;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        canvas { 
+            position: absolute;
+            top: 0; left: 0;
+            z-index: 1;
+        }
+
+        #timer-ui {
+            position: fixed;
+            top: 50px;
+            z-index: 100;
+            font-weight: 900;
+            font-size: 2.5rem;
+            color: #041661;
+            opacity: 0.15;
+            letter-spacing: -1px;
+            pointer-events: none;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(247, 247, 245, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .footer {
+            position: absolute;
+            bottom: 30px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #041661;
+            opacity: 0.4;
+        }
+        .footer a { text-decoration: underline; font-weight: 900; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="timer-ui">00:00</div>
+    <div id="frame"></div>
+
+    <div id="start-modal" class="modal">
+        <h1 class="text-7xl font-black text-[#041661] mb-2 tracking-tighter">UNBECOME</h1>
+        <p class="text-sm uppercase tracking-[0.4em] text-[#A776F5] mb-12 text-center">Less is more. Nothing is perfect.</p>
+        <div class="btn-juicy" onclick="initGame('start')">
+            <div class="btn-juicy-top"><span class="btn-text">PLAY</span></div>
+        </div>
+        <div class="footer">
+            Designed by <a href="https://dilipyadav.me" target="_blank">Dilip Yadav</a> • Vibe Coded on <span class="font-bold">Google Gemini</span>
+        </div>
+    </div>
+
+    <div id="status-modal" class="modal hidden">
+        <h1 id="status-title" class="text-6xl font-black text-[#041661] mb-4">WHOOPS.</h1>
+        <p id="status-quote" class="text-lg text-[#4B25B2] mb-8 italic px-10 text-center max-w-md"></p>
+        <div id="stats-box" class="mb-8">
+            <div class="text-gray-400 uppercase text-[10px] tracking-widest mb-1">Time Lived</div>
+            <div id="final-time" class="text-4xl font-black text-[#041661]">00:00</div>
+        </div>
+        <div class="btn-juicy" onclick="initGame('over')">
+            <div class="btn-juicy-top"><span class="btn-text">RETRY</span></div>
+        </div>
+        <div class="footer">
+            Designed by <a href="https://dilipyadav.me" target="_blank">Dilip Yadav</a> • Vibe Coded on <span class="font-bold">Google Gemini</span>
+        </div>
+    </div>
+
+    <canvas id="game"></canvas>
+
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const timerUI = document.getElementById('timer-ui');
+        const startModal = document.getElementById('start-modal');
+        const statusModal = document.getElementById('status-modal');
+        const statusTitle = document.getElementById('status-title');
+        const statusQuote = document.getElementById('status-quote');
+        const finalTimeDisplay = document.getElementById('final-time');
+
+        let GRID_SIZE = 35;
+        let TILE_X, TILE_Y;
+        let snake = [], food = {}, dir = {x:1, y:0}, nextDir = {x:1, y:0};
+        let lastTime = 0, startTime = 0, gameActive = false;
+        let moveInterval = 185; 
+
+        const failQuotes = [
+            "You spent [TIME] becoming nothing, only to fail at it.",
+            "That's [TIME] you won't get back. Want to waste more?",
+            "Almost invisible! Then you hit a wall. Typical.",
+            "The void was waiting for you, but you tripped at the door.",
+            "You lasted [TIME]. Not bad, but you're still... here."
+        ];
+
+        const winQuotes = [
+            "Poof. You disappeared in [TIME]. Total mastery.",
+            "Nothingness achieved. [TIME] well spent (or wasted).",
+            "You are now officially 'Zero'. Congratulations?",
+            "It took [TIME] to achieve perfect emptiness. Beautiful.",
+            "You've left the chat. [TIME] later, you finally succeeded."
+        ];
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function soundEat() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1046.50, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        function soundDie() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(40, audioCtx.currentTime + 0.5);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const padding = 64; 
+            TILE_X = Math.floor((canvas.width - padding) / GRID_SIZE);
+            TILE_Y = Math.floor((canvas.height - padding) / GRID_SIZE);
+        }
+
+        function initGame(source) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            source === 'start' ? startModal.classList.add('hidden') : statusModal.classList.add('hidden');
+            
+            snake = [];
+            const midX = Math.floor(TILE_X / 2);
+            const midY = Math.floor(TILE_Y / 2);
+            for(let i=0; i<20; i++) snake.push({x: midX - i, y: midY});
+            
+            dir = {x:1, y:0}; nextDir = {x:1, y:0};
+            spawnFood();
+            startTime = Date.now();
+            gameActive = true;
+            requestAnimationFrame(loop);
+        }
+
+        function spawnFood() {
+            food = {
+                x: Math.floor(Math.random() * TILE_X),
+                y: Math.floor(Math.random() * TILE_Y)
+            };
+            if(snake.some(s => s.x === food.x && s.y === food.y)) spawnFood();
+        }
+
+        window.addEventListener('keydown', e => {
+            if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) e.preventDefault();
+            if(e.key === 'ArrowUp' && dir.y === 0) nextDir = {x:0, y:-1};
+            if(e.key === 'ArrowDown' && dir.y === 0) nextDir = {x:0, y:1};
+            if(e.key === 'ArrowLeft' && dir.x === 0) nextDir = {x:-1, y:0};
+            if(e.key === 'ArrowRight' && dir.x === 0) nextDir = {x:1, y:0};
+        });
+
+        function update() {
+            dir = nextDir;
+            const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+            if(head.x < 0 || head.x >= TILE_X || head.y < 0 || head.y >= TILE_Y || 
+               snake.some(s => s.x === head.x && s.y === head.y)) {
+                showStatus('fail');
+                return;
+            }
+
+            snake.unshift(head);
+
+            if(head.x === food.x && head.y === food.y) {
+                soundEat();
+                for(let i=0; i<3; i++) if(snake.length > 1) snake.pop();
+                if(snake.length <= 1) {
+                    showStatus('win');
+                } else {
+                    spawnFood();
+                }
+            } else {
+                snake.pop();
+            }
+
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            timerUI.innerText = `${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${String(elapsed % 60).padStart(2, '0')}`;
+        }
+
+        function showStatus(mode) {
+            gameActive = false;
+            const timeStr = timerUI.innerText;
+            finalTimeDisplay.innerText = timeStr;
+            
+            if(mode === 'win') {
+                statusTitle.innerText = "VANISHED";
+                statusTitle.style.color = "#FFB20F";
+                const q = winQuotes[Math.floor(Math.random() * winQuotes.length)];
+                statusQuote.innerText = q.replace("[TIME]", timeStr);
+                soundEat(); // One extra happy sound
+            } else {
+                statusTitle.innerText = "WHOOPS.";
+                statusTitle.style.color = "#041661";
+                const q = failQuotes[Math.floor(Math.random() * failQuotes.length)];
+                statusQuote.innerText = q.replace("[TIME]", timeStr);
+                soundDie();
+            }
+            statusModal.classList.remove('hidden');
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const offsetX = (canvas.width - TILE_X * GRID_SIZE) / 2;
+            const offsetY = (canvas.height - TILE_Y * GRID_SIZE) / 2;
+
+            const fx = food.x * GRID_SIZE + GRID_SIZE/2 + offsetX;
+            const fy = food.y * GRID_SIZE + GRID_SIZE/2 + offsetY;
+            ctx.fillStyle = "#FFB20F";
+            ctx.beginPath();
+            for(let i=0; i<10; i++){
+                const angle = (Math.PI/5) * i - (Math.PI/2);
+                const r = i % 2 === 0 ? GRID_SIZE/2.2 : GRID_SIZE/5;
+                ctx.lineTo(fx + r*Math.cos(angle), fy + r*Math.sin(angle));
+            }
+            ctx.closePath(); ctx.fill();
+
+            snake.forEach((s, i) => {
+                ctx.fillStyle = i === 0 ? "#4B25B2" : `rgba(167, 118, 245, ${1 - (i/snake.length)})`;
+                ctx.beginPath();
+                ctx.roundRect(s.x * GRID_SIZE + offsetX + 2, s.y * GRID_SIZE + offsetY + 2, GRID_SIZE-4, GRID_SIZE-4, 10);
+                ctx.fill();
+            });
+        }
+
+        function loop(t) {
+            if(!gameActive) return;
+            if(t - lastTime > moveInterval) {
+                update();
+                lastTime = t;
+            }
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+    </script>
+</body>
+</html>
