@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dilip Yadav | PM Journey</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Bowlby+One+SC&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#070a0f;--dark:#0d1424;--navy:#1a3060;
+  --skyblue:#2e6ab0;--skylight:#4a9ad4;
+  --grass:#3a8020;--grass2:#2d6016;--dirt:#7a5530;
+  --red:#e8415a;--gold:#f5c030;--teal:#22d3ee;
+  --white:#f0f6ff;--dim:#6080a0;--green:#4ade80;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--black);font-family:'Press Start 2P',cursive;}
+
+#sky-layer{position:fixed;inset:0;z-index:0;background:linear-gradient(to bottom,var(--black) 0%,var(--dark) 15%,var(--navy) 38%,var(--skyblue) 62%,var(--skylight) 85%,#5ab0e0 100%);}
+#stars-canvas{position:fixed;inset:0;z-index:1;pointer-events:none;}
+#mountains-layer{position:fixed;bottom:96px;left:0;z-index:2;pointer-events:none;height:80px;width:100%;}
+#clouds-layer{position:fixed;inset:0;z-index:2;pointer-events:none;overflow:hidden;}
+
+#cinematic-overlay{position:fixed;inset:0;z-index:600;pointer-events:none;opacity:0;transition:opacity .8s;background:rgba(5,0,15,.55);}
+#cinematic-overlay.on{opacity:1;}
+#cinematic-text{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:601;pointer-events:none;font-family:'Bowlby One SC',sans-serif;font-size:clamp(14px,2.2vw,22px);color:var(--teal);letter-spacing:4px;text-align:center;opacity:0;text-shadow:0 0 20px var(--teal),0 0 40px var(--teal);transition:opacity .6s;}
+#cinematic-text.on{opacity:1;}
+
+#skill-flash{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);
+  z-index:700;pointer-events:none;
+  background:var(--dark);border:3px solid var(--gold);
+  box-shadow:0 0 0 1px rgba(245,192,48,.2),0 0 40px rgba(245,192,48,.3),6px 6px 0 rgba(0,0,0,.7);
+  padding:16px 26px;text-align:center;
+  transition:transform .3s cubic-bezier(.175,.885,.32,1.275),opacity .3s;opacity:0;
+}
+#skill-flash.show{transform:translate(-50%,-50%) scale(1);opacity:1;}
+#skill-flash.hide{transform:translate(-50%,-50%) scale(0);opacity:0;}
+.sf-unlocked{font-size:5px;color:var(--dim);letter-spacing:3px;margin-bottom:6px;}
+.sf-name{font-family:'Bowlby One SC',sans-serif;font-size:clamp(18px,2.5vw,26px);color:var(--gold);letter-spacing:3px;text-shadow:2px 2px 0 #7a5000;}
+.sf-corners{position:absolute;width:7px;height:7px;background:var(--gold);}
+.sf-tl{top:-2px;left:-2px;}.sf-tr{top:-2px;right:-2px;}.sf-bl{bottom:-2px;left:-2px;}.sf-br{bottom:-2px;right:-2px;}
+
+#exclaim{position:fixed;z-index:12;pointer-events:none;bottom:176px;left:190px;width:52px;text-align:center;opacity:0;transform:translateY(6px) scale(.8);transition:opacity .2s,transform .2s;}
+#exclaim.show{opacity:1;transform:translateY(0) scale(1);}
+.exclaim-bubble{display:inline-block;background:var(--gold);color:var(--black);font-size:9px;padding:3px 7px;box-shadow:2px 2px 0 rgba(0,0,0,.5);}
+.exclaim-bubble::after{content:'';display:block;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid var(--gold);margin:0 auto;}
+
+#boot{position:fixed;inset:0;z-index:9000;background:rgba(7,10,15,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .5s;}
+#boot.hide{opacity:0;pointer-events:none;}
+#boot-intro{font-size:6px;color:var(--dim);letter-spacing:2px;text-align:center;margin-bottom:24px;line-height:2.4;max-width:340px;}
+#boot-intro span{color:var(--teal);}
+#boot-logo{font-family:'Bowlby One SC',sans-serif;font-size:clamp(26px,5.5vw,52px);color:var(--red);letter-spacing:4px;text-align:center;line-height:1.1;text-shadow:3px 3px 0 #7a0020,6px 6px 0 #3a000e,0 0 40px rgba(232,65,90,.3);opacity:0;transform:scale(.85);transition:opacity .35s,transform .35s;}
+#boot-logo.in{opacity:1;transform:scale(1);}
+#boot-sub{font-size:clamp(6px,1vw,8px);color:var(--teal);letter-spacing:4px;margin-top:10px;opacity:0;transition:opacity .35s;}
+#boot-sub.in{opacity:1;}
+#boot-bar-wrap{margin-top:28px;width:260px;opacity:0;transition:opacity .35s;}
+#boot-bar-wrap.in{opacity:1;}
+#boot-bar-lbl{font-size:6px;color:var(--dim);margin-bottom:6px;letter-spacing:2px;}
+#boot-bar{width:100%;height:11px;background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.14);overflow:hidden;}
+#boot-bar-fill{height:100%;width:0%;background:var(--red);box-shadow:0 0 6px var(--red);}
+#boot-pct{font-size:6px;color:var(--dim);margin-top:4px;text-align:right;letter-spacing:2px;}
+#boot-lines{margin-top:16px;width:280px;font-size:6px;color:var(--green);line-height:2.3;letter-spacing:1px;min-height:64px;}
+#boot-press{margin-top:20px;font-size:8px;color:var(--white);letter-spacing:2px;opacity:0;}
+#boot-press.in{opacity:1;animation:blink 1s step-end infinite;}
+
+#game-title{position:fixed;top:0;left:0;right:0;z-index:500;text-align:center;pointer-events:none;padding:11px 0;opacity:0;transition:opacity .5s;background:linear-gradient(to bottom,rgba(7,10,15,.9) 65%,transparent);}
+#game-title.show{opacity:1;}
+.gt-name{font-family:'Bowlby One SC',sans-serif;font-size:clamp(24px,3.75vw,33px);color:var(--red);letter-spacing:5px;text-shadow:2px 2px 0 #7a0020,0 0 20px rgba(232,65,90,.25);}
+.gt-sub{font-size:clamp(8px,1.3vw,11px);color:var(--teal);letter-spacing:4px;margin-top:4px;}
+
+#hud{position:fixed;top:0;left:0;right:0;z-index:400;display:none;pointer-events:none;padding:0 14px;}
+.hud-row{display:flex;justify-content:space-between;align-items:flex-start;padding-top:62px;gap:8px;}
+.hud-panel{background:rgba(20,8,0,.9);border:2px solid #ff8800;padding:9px 13px;min-width:148px;box-shadow:0 0 12px rgba(255,136,0,.1),3px 3px 0 rgba(0,0,0,.5);}
+.hud-panel-lbl{font-size:5px;color:#ff8800;letter-spacing:2px;margin-bottom:7px;border-bottom:1px solid rgba(255,136,0,.25);padding-bottom:5px;}
+.hud-ctrl-row{font-size:6px;color:#884400;line-height:2.4;}
+.hud-ctrl-row b{color:#ff8800;}
+.hud-score-val{font-size:20px;color:#ffcc44;line-height:1;margin-bottom:9px;text-shadow:0 0 10px rgba(255,136,0,.4);}
+.hud-prog-lbl{font-size:5px;color:#884400;letter-spacing:2px;margin-bottom:4px;}
+.hud-prog-bar{width:100%;height:7px;background:rgba(255,136,0,.1);border:1px solid rgba(255,136,0,.3);}
+.hud-prog-fill{height:100%;background:#ff8800;width:0%;box-shadow:0 0 5px #ff8800;transition:width .15s;}
+.hud-prog-bottom{display:flex;justify-content:space-between;margin-top:4px;}
+.hud-prog-pct{font-size:6px;color:#ff8800;}
+.hud-era-val{font-size:5px;color:#884400;}
+
+#world{position:fixed;inset:0;z-index:3;}
+.ground{position:absolute;bottom:0;width:50000px;height:96px;background:var(--dirt);border-top:10px solid var(--grass);}
+.ground::after{content:'';position:absolute;top:8px;left:0;width:100%;height:6px;background:var(--grass2);}
+
+#player{position:fixed;bottom:96px;left:190px;width:52px;height:74px;z-index:10;opacity:0;transform:translateX(-260px);transition:none;image-rendering:pixelated;}
+#player.enter{transition:opacity .4s ease,transform .5s cubic-bezier(.22,1,.36,1);opacity:1;transform:translateX(0);}
+#nameplate{position:absolute;top:-20px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:6px;color:var(--white);text-shadow:1px 1px 0 #000,0 0 8px rgba(0,0,0,.8);}
+.px{position:absolute;image-rendering:pixelated;}
+.p-hair{width:26px;height:7px;background:#1a0e08;left:5px;top:0;}
+.p-head{width:26px;height:16px;background:#c8845a;left:5px;top:5px;}
+.p-el{width:3px;height:3px;background:#0a0c10;left:9px;top:10px;}
+.p-er{width:3px;height:3px;background:#0a0c10;left:20px;top:10px;}
+.p-gl{width:8px;height:5px;border:2px solid #556677;left:8px;top:9px;background:rgba(120,170,255,.1);}
+.p-gr{width:8px;height:5px;border:2px solid #556677;left:20px;top:9px;background:rgba(120,170,255,.1);}
+.p-gb{width:4px;height:2px;background:#556677;left:16px;top:11px;}
+.p-body{width:28px;height:20px;background:#2a4060;left:2px;top:21px;}
+.p-zip{width:8px;height:10px;background:#1a3050;left:12px;top:21px;}
+.p-zip-line{width:2px;height:10px;background:#c8c8c8;left:15px;top:21px;}
+.p-al{width:6px;height:13px;background:#2a4060;left:0;top:22px;transform-origin:top center;}
+.p-ar{width:6px;height:13px;background:#2a4060;left:30px;top:22px;transform-origin:top center;}
+.p-lscr{width:17px;height:13px;background:#1e293b;border:2px solid #0a0c10;border-bottom:none;left:31px;top:14px;}
+.p-lglo{width:13px;height:9px;background:var(--teal);opacity:.55;left:33px;top:16px;}
+.p-lcur{width:2px;height:6px;background:var(--white);opacity:.85;left:35px;top:18px;animation:cblink .9s step-end infinite;}
+.p-lbas{width:17px;height:3px;background:#0a0c10;left:31px;top:27px;}
+.p-belt{width:24px;height:3px;background:#0f172a;left:2px;top:41px;}
+.p-pants{width:24px;height:10px;background:#2a3a4a;left:2px;top:44px;}
+.p-ll{width:10px;height:17px;background:#2a3a4a;left:2px;top:54px;transform-origin:top center;}
+.p-lr{width:10px;height:17px;background:#2a3a4a;left:14px;top:54px;transform-origin:top center;}
+.p-sl{width:12px;height:3px;background:#1a1a2a;left:1px;top:71px;}
+.p-sr{width:12px;height:3px;background:#1a1a2a;left:13px;top:71px;}
+#player.walk .p-ll{animation:wll .22s ease-in-out infinite alternate;}
+#player.walk .p-lr{animation:wlr .22s ease-in-out infinite alternate;}
+#player.walk .p-sl{animation:wsl .22s ease-in-out infinite alternate;}
+#player.walk .p-sr{animation:wsr .22s ease-in-out infinite alternate;}
+#player.walk .p-al{animation:wal .22s ease-in-out infinite alternate;}
+#player.walk .p-ar{animation:war .22s ease-in-out infinite alternate;}
+@keyframes wll{from{transform:rotate(-12deg);}to{transform:rotate(12deg);}}
+@keyframes wlr{from{transform:rotate(12deg);}to{transform:rotate(-12deg);}}
+@keyframes wsl{from{left:0px;}to{left:3px;}}
+@keyframes wsr{from{left:13px;}to{left:10px;}}
+@keyframes wal{from{transform:rotate(10deg);}to{transform:rotate(-10deg);}}
+@keyframes war{from{transform:rotate(-10deg);}to{transform:rotate(10deg);}}
+#player.jump .p-ll{transform:rotate(-26deg)!important;animation:none!important;}
+#player.jump .p-lr{transform:rotate(26deg)!important;animation:none!important;}
+#player.jump .p-al{transform:rotate(-28deg)!important;animation:none!important;}
+@keyframes cblink{0%,100%{opacity:.85}50%{opacity:0}}
+
+.milestone{position:absolute;bottom:96px;width:300px;text-align:center;transition:transform .25s,filter .25s;}
+.milestone.active{transform:scale(1.07) translateY(-5px);filter:drop-shadow(0 0 16px rgba(245,192,48,.55));z-index:20;}
+.sign-post{width:12px;height:52px;margin:0 auto;background:linear-gradient(to right,#4a2e10,#8b5e28,#4a2e10);border:2px solid #2e1a08;}
+.sign-board{background:#f0ece0;border:2px solid #8a7a60;padding:0;box-shadow:4px 5px 0 rgba(0,0,0,.55);position:relative;overflow:hidden;}
+.sign-board::before{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(to bottom,transparent,transparent 20px,rgba(0,0,0,.045) 20px,rgba(0,0,0,.045) 21px);}
+.sign-header{background:#2a1a00;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1;}
+.sign-paper-name{font-size:6px;color:#f0ece0;letter-spacing:2px;}
+.sign-edition{font-size:5px;color:rgba(240,236,224,.45);letter-spacing:1px;}
+.sign-body{padding:11px 13px;position:relative;z-index:1;}
+.sign-icon{font-size:28px;display:block;margin-bottom:7px;filter:drop-shadow(1px 1px 0 rgba(0,0,0,.3));}
+.sign-role{font-family:'Bowlby One SC',sans-serif;font-size:14px;color:#1a0800;line-height:1.2;margin-bottom:4px;}
+.sign-co{font-size:5px;color:#4a2e00;margin-bottom:3px;letter-spacing:.5px;line-height:1.7;}
+.sign-date{font-size:5px;color:#8a0000;display:inline-block;margin-bottom:8px;font-style:italic;}
+.sign-rule{width:100%;height:2px;background:#2a1a00;margin:0 0 8px;}
+.sign-story{font-size:5px;color:#2a1a00;line-height:2.4;text-align:left;letter-spacing:.3px;}
+
+.coin-wrap{position:absolute;bottom:230px;width:80px;text-align:center;}
+.skill-lbl{font-size:5px;background:var(--black);color:var(--white);padding:3px 6px;display:inline-block;margin-bottom:6px;letter-spacing:1px;border:1px solid rgba(255,255,255,.18);}
+.coin{width:32px;height:32px;margin:0 auto;position:relative;animation:cspin 1.1s steps(4) infinite;image-rendering:pixelated;}
+.coin canvas{position:absolute;top:0;left:0;image-rendering:pixelated;width:32px;height:32px;}
+.coin-arrow{font-size:8px;color:rgba(245,192,48,.7);display:block;margin-top:3px;animation:bob .7s ease-in-out infinite alternate;}
+@keyframes cspin{0%{transform:scaleX(1);}25%{transform:scaleX(.18);}50%{transform:scaleX(1);}75%{transform:scaleX(.18);}100%{transform:scaleX(1);}}
+@keyframes bob{from{transform:translateY(0);}to{transform:translateY(-4px);}}
+
+#end-modal{position:fixed;inset:0;z-index:8000;display:none;align-items:center;justify-content:center;background:rgba(7,10,15,.92);backdrop-filter:blur(6px);}
+#end-modal.show{display:flex;}
+#end-card{background:var(--dark);border:3px solid var(--gold);box-shadow:6px 6px 0 rgba(0,0,0,.8),0 0 0 1px rgba(245,192,48,.15),0 0 30px rgba(245,192,48,.08);padding:28px 30px 24px;max-width:440px;width:92%;text-align:center;transform:scale(0) rotate(-3deg);transition:transform .45s cubic-bezier(.175,.885,.32,1.275);position:relative;}
+#end-modal.show #end-card{transform:scale(1) rotate(0);}
+.ec-c{position:absolute;width:9px;height:9px;background:var(--gold);}
+.ec-c.tl{top:-3px;left:-3px;}.ec-c.tr{top:-3px;right:-3px;}
+.ec-c.bl{bottom:-3px;left:-3px;}.ec-c.br{bottom:-3px;right:-3px;}
+.ec-trophy{font-size:32px;display:block;margin-bottom:6px;}
+.ec-score{font-family:'Bowlby One SC',sans-serif;font-size:52px;color:var(--gold);line-height:1;text-shadow:3px 3px 0 #7a5000;animation:spop .5s .1s cubic-bezier(.175,.885,.32,1.275) both;}
+@keyframes spop{from{transform:scale(0)}to{transform:scale(1)}}
+.ec-pts-line{font-size:8px;color:var(--dim);letter-spacing:2px;margin:4px 0 14px;line-height:1.8;}
+.ec-pts-line span{color:var(--white);}
+.ec-recap{display:flex;justify-content:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.ec-recap-item{background:rgba(255,255,255,.04);border:1px solid rgba(245,192,48,.2);padding:5px 8px;font-size:5px;color:var(--dim);display:flex;flex-direction:column;align-items:center;gap:3px;opacity:0;transform:translateY(8px);transition:opacity .3s,transform .3s;}
+.ec-recap-item.show{opacity:1;transform:translateY(0);}
+.ec-recap-icon{font-size:14px;}
+.ec-recap-era{color:var(--gold);font-size:4px;letter-spacing:1px;}
+.ec-divider{width:60px;height:2px;background:var(--gold);margin:0 auto 14px;opacity:.4;}
+.ec-cta{font-size:7px;color:var(--white);line-height:2;margin-bottom:14px;}
+.ec-cta span{color:var(--teal);}
+.ec-li{display:block;width:100%;font-family:'Press Start 2P',cursive;font-size:7px;padding:13px;cursor:pointer;background:var(--teal);color:var(--black);border:2px solid var(--teal);box-shadow:4px 4px 0 #007a99;letter-spacing:1px;text-decoration:none;margin-bottom:10px;transition:transform .1s,box-shadow .1s;}
+.ec-li:hover{transform:translate(-1px,-1px);box-shadow:5px 5px 0 #007a99;}
+.ec-email-lbl{font-size:5px;color:var(--dim);letter-spacing:2px;margin-bottom:6px;text-align:left;}
+.ec-email-row{display:flex;align-items:stretch;border:2px solid rgba(255,255,255,.14);margin-bottom:12px;}
+.ec-addr{flex:1;font-size:6px;color:rgba(240,246,255,.65);padding:10px;background:rgba(255,255,255,.04);text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ec-copy{font-family:'Press Start 2P',cursive;font-size:5px;padding:10px;cursor:pointer;background:rgba(255,255,255,.07);border:none;border-left:2px solid rgba(255,255,255,.14);color:var(--dim);white-space:nowrap;transition:background .15s,color .15s;}
+.ec-copy:hover{background:rgba(255,255,255,.18);color:var(--white);}
+.ec-send{font-family:'Press Start 2P',cursive;font-size:5px;padding:10px;cursor:pointer;background:rgba(232,65,90,.1);border:none;border-left:2px solid rgba(255,255,255,.14);color:var(--red);white-space:nowrap;text-decoration:none;display:flex;align-items:center;transition:background .15s;}
+.ec-send:hover{background:rgba(232,65,90,.25);}
+.ec-replay{font-family:'Press Start 2P',cursive;font-size:6px;padding:8px 16px;cursor:pointer;background:transparent;border:1px solid rgba(255,255,255,.14);color:var(--dim);letter-spacing:1px;transition:color .15s,border-color .15s;}
+.ec-replay:hover{color:var(--white);border-color:rgba(255,255,255,.35);}
+
+#footer{position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:7px;color:rgba(240,246,255,.5);z-index:50;pointer-events:none;letter-spacing:2px;text-shadow:0 1px 4px rgba(0,0,0,.9);}
+
+#mobile-screen{display:none;}
+@media(max-width:768px){
+  #sky-layer,#stars-canvas,#clouds-layer,#boot,#game-title,#hud,#world,#player,#end-modal,#footer,#cinematic-overlay,#cinematic-text,#skill-flash,#exclaim{display:none!important;}
+  html,body{overflow:auto;height:auto;}
+  #mobile-screen{display:flex;flex-direction:column;align-items:center;min-height:100vh;background:linear-gradient(to bottom,var(--black) 0%,var(--dark) 12%,var(--navy) 35%,var(--skyblue) 60%,var(--skylight) 82%,#5ab0e0 100%);position:relative;}
+  #mob-stars{position:fixed;inset:0;z-index:0;pointer-events:none;}
+  .mob-top{position:relative;z-index:2;text-align:center;padding:48px 24px 0;width:100%;}
+  .mob-title{font-family:'Bowlby One SC',sans-serif;font-size:clamp(30px,9vw,52px);color:var(--red);letter-spacing:4px;line-height:1;text-shadow:3px 3px 0 #7a0020,6px 6px 0 #3a000e;}
+  .mob-subtitle{font-size:clamp(6px,2.2vw,8px);color:var(--teal);letter-spacing:3px;margin-top:10px;}
+  .mob-scene{position:relative;z-index:2;width:100%;height:clamp(180px,42vw,220px);flex-shrink:0;margin-top:10px;}
+  .mob-ground{position:absolute;bottom:0;left:0;right:0;height:32px;background:var(--dirt);border-top:7px solid var(--grass);}
+  .mob-ground::after{content:'';position:absolute;top:6px;left:0;width:100%;height:4px;background:var(--grass2);}
+  .mob-char{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);width:52px;height:74px;image-rendering:pixelated;animation:mob-idle 2s ease-in-out infinite alternate;}
+  @keyframes mob-idle{from{bottom:32px;}to{bottom:37px;}}
+  .mob-section{position:relative;z-index:2;width:100%;max-width:420px;padding:0 20px;margin-top:18px;}
+  .mob-msg-box{background:rgba(7,10,15,.78);border:2px solid rgba(255,136,0,.4);padding:14px 16px;box-shadow:3px 3px 0 rgba(0,0,0,.5);display:flex;align-items:center;gap:12px;}
+  .mob-msg-icon{font-size:20px;flex-shrink:0;}
+  .mob-msg-text{font-size:clamp(5px,2vw,6px);color:var(--dim);letter-spacing:.5px;line-height:2.2;}
+  .mob-msg-text span{color:var(--white);}
+  .mob-contact-lbl{font-size:clamp(5px,1.8vw,7px);color:var(--dim);letter-spacing:3px;margin-bottom:12px;padding-top:18px;border-top:1px solid rgba(255,255,255,.08);}
+  .mob-li{display:block;width:100%;font-family:'Press Start 2P',cursive;font-size:clamp(7px,2.5vw,9px);padding:14px;cursor:pointer;background:var(--teal);color:var(--black);border:2px solid var(--teal);box-shadow:3px 3px 0 #007a99;letter-spacing:1px;text-decoration:none;margin-bottom:10px;text-align:center;}
+  .mob-email-row{display:flex;border:2px solid rgba(255,255,255,.14);}
+  .mob-addr{flex:1;font-size:clamp(5px,1.8vw,7px);color:rgba(240,246,255,.65);padding:12px 10px;background:rgba(255,255,255,.04);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+  .mob-copy{font-family:'Press Start 2P',cursive;font-size:clamp(4px,1.6vw,6px);padding:12px 10px;cursor:pointer;background:rgba(255,255,255,.07);border:none;border-left:2px solid rgba(255,255,255,.14);color:var(--dim);}
+  .mob-send{font-family:'Press Start 2P',cursive;font-size:clamp(4px,1.6vw,6px);padding:12px 10px;background:rgba(232,65,90,.1);border:none;border-left:2px solid rgba(255,255,255,.14);color:var(--red);text-decoration:none;display:flex;align-items:center;cursor:pointer;}
+  .mob-footer{position:relative;z-index:2;font-size:clamp(5px,1.6vw,6px);color:rgba(240,246,255,.25);letter-spacing:2px;padding:24px 0 36px;text-align:center;}
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+</style>
+</head>
+<body>
+
+<div id="sky-layer"></div>
+<canvas id="stars-canvas"></canvas>
+<canvas id="mountains-layer"></canvas>
+<div id="clouds-layer"></div>
+<div id="cinematic-overlay"></div>
+<div id="cinematic-text"></div>
+
+<div id="skill-flash">
+  <div class="sf-corners sf-tl"></div><div class="sf-corners sf-tr"></div>
+  <div class="sf-corners sf-bl"></div><div class="sf-corners sf-br"></div>
+  <div class="sf-unlocked">SKILL UNLOCKED</div>
+  <div class="sf-name" id="sf-name">EXECUTION</div>
+</div>
+
+<div id="exclaim"><div class="exclaim-bubble">!</div></div>
+
+<div id="boot">
+  <div id="boot-intro">
+    You are about to explore the <span>interactive career journey</span> of<br>
+    <span>Dilip Yadav</span> &mdash; PM, builder, and defence kid from India.<br>
+    Walk through 7 milestones. Collect skills. Reach the finish.
+  </div>
+  <div id="boot-logo">DILIP YADAV<br>PRODUCT MANAGER</div>
+  <div id="boot-sub">9 YEARS &middot; 7 ROLES &middot; 1 JOURNEY</div>
+  <div id="boot-bar-wrap">
+    <div id="boot-bar-lbl">LOADING CAREER DATA...</div>
+    <div id="boot-bar"><div id="boot-bar-fill"></div></div>
+    <div id="boot-pct">0%</div>
+  </div>
+  <div id="boot-lines"></div>
+  <div id="boot-press">&#9654; PRESS SPACE OR CLICK TO START</div>
+</div>
+
+<div id="game-title">
+  <div class="gt-name">DILIP YADAV</div>
+  <div class="gt-sub">PRODUCT MANAGER</div>
+</div>
+
+<div id="hud">
+  <div class="hud-row">
+    <div class="hud-panel">
+      <div class="hud-panel-lbl">CONTROLS</div>
+      <div class="hud-ctrl-row"><b>&#8592; &#8594;</b> MOVE<br><b>SPACE</b> JUMP</div>
+    </div>
+    <div></div>
+    <div class="hud-panel">
+      <div class="hud-panel-lbl">SCORE</div>
+      <div class="hud-score-val" id="hud-score">0</div>
+      <div class="hud-prog-lbl">PROGRESS</div>
+      <div class="hud-prog-bar"><div class="hud-prog-fill" id="hud-prog"></div></div>
+      <div class="hud-prog-bottom">
+        <span class="hud-era-val" id="hud-era"></span>
+        <span class="hud-prog-pct" id="hud-pct">0%</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="end-modal">
+  <div id="end-card">
+    <div class="ec-c tl"></div><div class="ec-c tr"></div>
+    <div class="ec-c bl"></div><div class="ec-c br"></div>
+    <span class="ec-trophy">&#127942;</span>
+    <div class="ec-score" id="ec-score">0</div>
+    <div class="ec-pts-line"><span id="ec-pts-label">PTS</span> &#8212; looks like someone had fun</div>
+    <div class="ec-recap" id="ec-recap"></div>
+    <div class="ec-divider"></div>
+    <div class="ec-cta">Like what you see?<br><span>Let&#39;s build something together.</span></div>
+    <a href="https://linkedin.com/in/dilhq" target="_blank" class="ec-li">&#8599; CONNECT ON LINKEDIN</a>
+    <div class="ec-email-lbl">OR REACH OUT DIRECTLY</div>
+    <div class="ec-email-row">
+      <div class="ec-addr" id="ec-addr-text"></div>
+      <button class="ec-copy" id="copy-btn">COPY</button>
+      <a href="#" id="ec-send-link" class="ec-send">SEND &#8599;</a>
+    </div>
+    <button class="ec-replay" onclick="location.reload()">&#8635; PLAY AGAIN</button>
+  </div>
+</div>
+
+<div id="world">
+  <div class="ground"></div>
+  <div id="finish-flag" style="position:absolute;bottom:96px;font-size:46px;z-index:5;">&#127937;</div>
+</div>
+
+<div id="player">
+  <div id="nameplate">DILIP YADAV</div>
+  <div class="px p-hair"></div><div class="px p-head"></div>
+  <div class="px p-el"></div><div class="px p-er"></div>
+  <div class="px p-gl"></div><div class="px p-gr"></div><div class="px p-gb"></div>
+  <div class="px p-al"></div>
+  <div class="px p-body"></div><div class="px p-zip"></div><div class="px p-zip-line"></div>
+  <div class="px p-lscr"></div><div class="px p-lglo"></div>
+  <div class="px p-lcur"></div><div class="px p-lbas"></div>
+  <div class="px p-belt"></div><div class="px p-pants"></div>
+  <div class="px p-ll"></div><div class="px p-lr"></div>
+  <div class="px p-sl"></div><div class="px p-sr"></div>
+  <div class="px p-ar"></div>
+</div>
+
+<div id="footer">Vibe coded by the PM in India &#127470;&#127475;</div>
+
+<div id="mobile-screen">
+  <canvas id="mob-stars"></canvas>
+  <div class="mob-top">
+    <div class="mob-title">DILIP YADAV</div>
+    <div class="mob-subtitle">PRODUCT MANAGER &middot; 9 YRS &middot; INDIA &#127470;&#127475;</div>
+  </div>
+  <div class="mob-scene">
+    <div class="mob-char">
+      <div class="px p-hair"></div><div class="px p-head"></div>
+      <div class="px p-el"></div><div class="px p-er"></div>
+      <div class="px p-gl"></div><div class="px p-gr"></div><div class="px p-gb"></div>
+      <div class="px p-al"></div>
+      <div class="px p-body"></div><div class="px p-zip"></div><div class="px p-zip-line"></div>
+      <div class="px p-lscr"></div><div class="px p-lglo"></div>
+      <div class="px p-lcur"></div><div class="px p-lbas"></div>
+      <div class="px p-belt"></div><div class="px p-pants"></div>
+      <div class="px p-ll"></div><div class="px p-lr"></div>
+      <div class="px p-sl"></div><div class="px p-sr"></div>
+      <div class="px p-ar"></div>
+    </div>
+    <div class="mob-ground"></div>
+  </div>
+  <div class="mob-section">
+    <div class="mob-msg-box">
+      <span class="mob-msg-icon">&#128421;</span>
+      <div class="mob-msg-text">Dilip&#39;s interactive portfolio is a <span>playable game</span> &#8212; only available on desktop.</div>
+    </div>
+  </div>
+  <div class="mob-section" style="margin-top:16px;margin-bottom:0;">
+    <div class="mob-contact-lbl">GET IN TOUCH</div>
+    <a href="https://linkedin.com/in/dilhq" target="_blank" class="mob-li">&#8599; CONNECT ON LINKEDIN</a>
+    <div class="mob-email-row">
+      <div class="mob-addr" id="mob-addr-text"></div>
+      <button class="mob-copy" id="mob-copy-btn">COPY</button>
+      <a href="#" id="mob-send-link" class="mob-send">SEND &#8599;</a>
+    </div>
+  </div>
+  <div class="mob-footer">Vibe coded by the PM in India &#127470;&#127475;</div>
+</div>
+
+<script>
+var EM='dilipyadavnow'+String.fromCharCode(64)+'gmail.com';
+document.getElementById('ec-addr-text').textContent=EM;
+document.getElementById('mob-addr-text').textContent=EM;
+document.getElementById('ec-send-link').href='mailto:'+EM;
+document.getElementById('mob-send-link').href='mailto:'+EM;
+
+/* PARALLAX MOUNTAINS */
+(function(){
+  var c=document.getElementById('mountains-layer');if(!c)return;
+  var ctx=c.getContext('2d');
+  var W,mtnData=[];
+  function buildMtns(){
+    W=innerWidth;c.width=W;c.height=80;mtnData=[];
+    var x=0;
+    while(x<W*3){var h=20+Math.floor(Math.random()*40);var w=60+Math.floor(Math.random()*80);mtnData.push({x:x,w:w,h:h});x+=w*0.7;}
+  }
+  buildMtns();window.addEventListener('resize',buildMtns);
+  function drawMtns(worldX){
+    ctx.clearRect(0,0,W,80);var off=(worldX*0.18)%W;
+    ctx.fillStyle='#1a2a3a';
+    mtnData.forEach(function(m){
+      var dx=((m.x-off)%W+W)%W;
+      ctx.beginPath();ctx.moveTo(dx,80);ctx.lineTo(dx+m.w/2,80-m.h);ctx.lineTo(dx+m.w,80);ctx.closePath();ctx.fill();
+    });
+  }
+  window.drawMtns=drawMtns;drawMtns(0);
+})();
+
+/* STARS */
+function initStars(id,yFrac){
+  var c=document.getElementById(id);if(!c)return;
+  var cx=c.getContext('2d');var t=0;
+  function draw(){
+    c.width=innerWidth;c.height=innerHeight;cx.clearRect(0,0,c.width,c.height);t+=.02;
+    for(var i=0;i<200;i++){
+      var x=(Math.sin(i*127.1+3)*.5+.5)*c.width;
+      var y=(Math.sin(i*311.7+1)*.5+.5)*c.height*(yFrac||.62);
+      var r=Math.max(1,Math.round(Math.abs(Math.sin(i*53))*1.8));
+      var a=Math.max(0,.1+Math.abs(Math.sin(i*17))*.3+Math.sin(t+i*.6)*.1);
+      cx.fillStyle='rgba(255,255,255,'+a+')';cx.fillRect(Math.round(x),Math.round(y),r,r);
+    }
+  }
+  draw();setInterval(draw,100);window.addEventListener('resize',draw);
+}
+initStars('stars-canvas',.62);
+initStars('mob-stars',.75);
+
+/* CLOUDS */
+(function(){
+  var layer=document.getElementById('clouds-layer');if(!layer)return;
+  var SHAPE=[[3,0],[4,0],[5,0],[6,0],[7,0],[2,1],[3,1],[4,1],[5,1],[6,1],[7,1],[8,1],[1,2],[2,2],[3,2],[4,2],[5,2],[6,2],[7,2],[8,2],[9,2],[10,2],[0,3],[1,3],[2,3],[3,3],[4,3],[5,3],[6,3],[7,3],[8,3],[9,3],[10,3],[11,3],[12,3],[13,3],[0,4],[1,4],[2,4],[3,4],[4,4],[5,4],[6,4],[7,4],[8,4],[9,4],[10,4],[11,4],[12,4],[13,4]];
+  var defs=[{t:.48,s:.20,p:5,o:.70},{t:.60,s:.12,p:4,o:.56},{t:.42,s:.27,p:6,o:.76},{t:.56,s:.16,p:4,o:.54},{t:.65,s:.22,p:5,o:.63}];
+  var clouds=defs.map(function(d){
+    var ps=d.p,cv=document.createElement('canvas');
+    cv.width=14*ps;cv.height=5*ps;
+    cv.style.cssText='position:absolute;image-rendering:pixelated;opacity:'+d.o+';';
+    var ctx=cv.getContext('2d');
+    SHAPE.forEach(function(rc){
+      var col=rc[0],row=rc[1];if(row>=5)return;
+      ctx.fillStyle=row<2?'rgba(230,242,255,.95)':'rgba(200,224,255,.80)';
+      ctx.fillRect(col*ps,row*ps,ps,ps);
+      if(row===0){ctx.fillStyle='rgba(255,255,255,.4)';ctx.fillRect(col*ps,row*ps,ps,1);}
+    });
+    layer.appendChild(cv);cv.style.top=(d.t*100)+'%';
+    return{el:cv,x:Math.random()*115,speed:d.s};
+  });
+  function anim(){clouds.forEach(function(c){c.x-=c.speed;if(c.x<-20)c.x=115+Math.random()*15;c.el.style.left=c.x+'%';});requestAnimationFrame(anim);}
+  anim();
+})();
+
+/* PIXEL COIN */
+function makePixelCoin(){
+  var SZ=16,SC=2,cv=document.createElement('canvas');
+  cv.width=SZ*SC;cv.height=SZ*SC;
+  cv.style.cssText='width:32px;height:32px;image-rendering:pixelated;';
+  var ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=false;
+  var map=[[0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0],[0,0,1,1,2,2,2,2,2,2,2,2,1,1,0,0],[0,1,1,2,2,3,3,3,3,2,2,2,2,1,1,0],[0,1,2,2,3,4,4,3,3,3,2,2,2,2,1,0],[1,1,2,3,4,4,3,3,3,3,3,2,2,2,1,1],[1,2,2,3,4,3,3,3,3,3,3,3,2,2,2,1],[1,2,3,3,3,3,3,3,3,3,3,3,3,2,2,1],[1,2,3,3,3,3,3,3,3,3,3,3,3,2,2,1],[1,2,3,3,3,3,3,3,3,3,3,3,3,2,2,1],[1,2,3,3,3,3,3,3,3,3,3,3,3,2,2,1],[1,2,2,3,3,3,3,3,3,3,3,3,2,2,2,1],[1,1,2,2,3,3,3,3,3,3,3,2,2,2,1,1],[0,1,2,2,2,3,3,3,3,2,2,2,2,1,1,0],[0,1,1,2,2,2,2,2,2,2,2,2,1,1,1,0],[0,0,1,1,1,2,2,2,2,2,1,1,1,1,0,0],[0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0]];
+  var COLS={'0':'transparent','1':'#5a3800','2':'#c88000','3':'#f5c030','4':'#fff5a0'};
+  map.forEach(function(row,ry){row.forEach(function(v,cx2){if(!v)return;ctx.fillStyle=COLS[v];ctx.fillRect(cx2*SC,ry*SC,SC,SC);});});
+  return cv;
+}
+
+/* AUDIO */
+var AC;
+function initAC(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();}
+function beep(type){
+  if(!AC)return;
+  if(AC.state==='suspended')AC.resume();
+  try{
+    var t=AC.currentTime;
+    if(type==='site-load'){
+      [[220,.0,.12],[330,.14,.12],[440,.28,.18]].forEach(function(a){
+        var o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);
+        o.type='square';o.frequency.value=a[0];
+        g.gain.setValueAtTime(.04,t+a[1]);g.gain.linearRampToValueAtTime(.001,t+a[1]+a[2]);
+        o.start(t+a[1]);o.stop(t+a[1]+a[2]);
+      });
+    }else if(type==='game-start'){
+      [[262,.0,.1],[330,.11,.1],[392,.22,.1],[523,.33,.22]].forEach(function(a){
+        var o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);
+        o.type='square';o.frequency.value=a[0];
+        g.gain.setValueAtTime(.055,t+a[1]);g.gain.linearRampToValueAtTime(.001,t+a[1]+a[2]);
+        o.start(t+a[1]);o.stop(t+a[1]+a[2]+.02);
+      });
+    }else if(type==='jump'){
+      var o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);
+      o.type='square';o.frequency.setValueAtTime(160,t);o.frequency.exponentialRampToValueAtTime(520,t+.1);
+      g.gain.setValueAtTime(.09,t);g.gain.linearRampToValueAtTime(.001,t+.12);
+      o.start(t);o.stop(t+.13);
+    }else if(type==='coin'){
+      [[1046,.0,.06],[1318,.07,.1]].forEach(function(a){
+        var o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);
+        o.type='sine';o.frequency.value=a[0];
+        g.gain.setValueAtTime(.1,t+a[1]);g.gain.linearRampToValueAtTime(.001,t+a[1]+a[2]);
+        o.start(t+a[1]);o.stop(t+a[1]+a[2]+.01);
+      });
+    }else if(type==='step'){
+      var o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);
+      o.type='sine';o.frequency.setValueAtTime(90,t);o.frequency.linearRampToValueAtTime(60,t+.04);
+      g.gain.setValueAtTime(.018,t);g.gain.linearRampToValueAtTime(.001,t+.05);
+      o.start(t);o.stop(t+.06);
+    }else if(type==='win'){
+      [523,659,784,1047,784,1047].forEach(function(f,i){
+        var o=AC.createOscillator(),g=AC.createGain();o.connect(g);g.connect(AC.destination);
+        o.type='square';o.frequency.value=f;
+        var s=t+i*.1;g.gain.setValueAtTime(.05,s);g.gain.linearRampToValueAtTime(.001,s+.12);
+        o.start(s);o.stop(s+.13);
+      });
+    }
+  }catch(e){}
+}
+
+/* BOOT */
+var BOOT_LINES=[
+  '> INITIALISING CAREER ENGINE...',
+  '> WARNING: CONTAINS 1 PLOT TWIST',
+  '> EXECUTION .......... OK',
+  '> STRATEGY ........... OK',
+  '> AI THINKING ........ OK',
+  '> UX & CRAFT ......... OK',
+  '> PLATFORM ........... OK',
+  '> LEADERSHIP ......... OK',
+  '> 7 MILESTONES MOUNTED',
+  '> ALL SYSTEMS GO.'
+];
+var bootReady=false;
+(function(){
+  var logo=document.getElementById('boot-logo');
+  var sub=document.getElementById('boot-sub');
+  var bw=document.getElementById('boot-bar-wrap');
+  var fill=document.getElementById('boot-bar-fill');
+  var pct=document.getElementById('boot-pct');
+  var lines=document.getElementById('boot-lines');
+  var press=document.getElementById('boot-press');
+  setTimeout(function(){logo.classList.add('in');},150);
+  setTimeout(function(){sub.classList.add('in');bw.classList.add('in');},480);
+  var p=0;
+  var iv=setInterval(function(){
+    p+=Math.floor(Math.random()*7)+3;
+    if(p>=100){p=100;clearInterval(iv);}
+    fill.style.width=p+'%';pct.textContent=p+'%';
+  },65);
+  BOOT_LINES.forEach(function(line,i){
+    setTimeout(function(){
+      var d=document.createElement('div');
+      d.style.cssText='opacity:0;transition:opacity .1s';
+      d.textContent=line;lines.appendChild(d);
+      requestAnimationFrame(function(){requestAnimationFrame(function(){d.style.opacity='1';});});
+    },650+i*160);
+  });
+  setTimeout(function(){press.classList.add('in');bootReady=true;},650+BOOT_LINES.length*160+200);
+})();
+
+function dismissBoot(){
+  if(!bootReady)return;
+  initAC();if(AC)AC.resume();
+  beep('site-load');
+  document.getElementById('boot').classList.add('hide');
+  setTimeout(function(){document.getElementById('boot').style.display='none';startGame();},520);
+}
+document.getElementById('boot').addEventListener('click',dismissBoot);
+
+/* GAME DATA — 7 milestones, 6 coins */
+var DATA=[
+
+  /* 0 — ORIGIN */
+  {type:'milestone',x:500,
+   emoji:'&#129494;',role:'THE ARMY KID',co:'India &mdash; Defence Family',date:'1997 &ndash; 2012',era:'ORIGIN',
+   story:'Grew up across 8-9 cities &mdash; defence kid, always the new one in class. Army Public School shaped the discipline. After 12th, spent a year trying to become an Army officer. Declared medically unfit. One door closed. Everything after is what that redirection built.'},
+
+  /* coin 1 */
+  {type:'coin',x:1100,skill:'EXECUTION'},
+
+  /* 1 — COLLEGE */
+  {type:'milestone',x:1600,
+   emoji:'&#127891;',role:'CS UNDERGRAD',co:'Gurukula Kangri Vishwavidyalaya',date:'2012 &ndash; 2016',era:'COLLEGE',
+   story:'BTech in Computer Science. Learned how computers think &mdash; and more importantly, how people don\'t. Tried building a SaaS with friends in the final years. Strong intent, weak execution. Shut it down with no revenue, sold the code. First real lesson: ideas are cheap, execution is everything.'},
+
+  /* coin 2 */
+  {type:'coin',x:2200,skill:'STRATEGY'},
+
+  /* 2 — FAILED FOUNDER */
+  {type:'milestone',x:2700,
+   emoji:'&#128165;',role:'FAILED FOUNDER',co:'Self-started SaaS, Delhi',date:'Jan 2016 &ndash; Apr 2017',era:'FOUNDER',
+   story:'Built something from scratch with a couple of friends. No playbook, no runway, no revenue. Shut it down. Sold the code. The resume literally says Failed Founder &mdash; because owning it is more useful than hiding it. Learned more in 15 months of failure than most learn in 3 years of safety.'},
+
+  /* coin 3 */
+  {type:'coin',x:3300,skill:'AI THINKING'},
+
+  /* 3 — DENTAL KART */
+  {type:'milestone',x:3800,
+   emoji:'&#129463;',role:'CORE TEAM MEMBER',co:'Early Stage Startup &mdash; Dental Kart',date:'Jun 2017 &ndash; Aug 2018',era:'STARTUP',
+   story:'Few people. One flat. Big ambitions. Wore every hat &mdash; sometimes all at once. Watched the company pivot from SaaS to e-commerce. Had a no salary, only belief phase. Left when founder alignment broke. First real taste of zero-to-one and the chaos that comes with it.'},
+
+  /* coin 4 */
+  {type:'coin',x:4400,skill:'UX & CRAFT'},
+
+  /* 4 — ASPIRING MINDS */
+  {type:'milestone',x:4900,
+   emoji:'&#128188;',role:'MANAGEMENT TRAINEE',co:'Aspiring Minds (acquired by SHL)',date:'Sep 2018 &ndash; Dec 2019',era:'FIRST PM',
+   story:'First role where PRDs existed and meetings had agendas. Learned PM fundamentals from solid seniors. Made long-term friendships. Company got acquired by SHL midway. Left for a steeper learning curve &mdash; startup chaos felt more honest than the acquired-company calm.'},
+
+  /* coin 5 */
+  {type:'coin',x:5500,skill:'PLATFORM'},
+
+  /* 5 — STANZA LIVING */
+  {type:'milestone',x:6000,
+   emoji:'&#127968;',role:'APM &rarr; PRODUCT MANAGER',co:'Stanza Living',date:'Dec 2019 &ndash; Feb 2022',era:'PM GRIND',
+   story:'Joined. Three months later &mdash; COVID. Business killed overnight. Founders doubled down on tech instead. Worked fully remote. Picked up design, analytics, whatever it took to ship. Built across 0&rarr;1 and 1&rarr;10. Learned execution from sharp operators. Left in line with a leadership reshuffle. Two years of building under pressure.'},
+
+  /* coin 6 */
+  {type:'coin',x:6600,skill:'LEADERSHIP'},
+
+  /* 6 — AIRTEL */
+  {type:'milestone',x:7100,
+   emoji:'&#128225;',role:'MANAGER &rarr; SR. MGR &rarr; DGM',co:'Airtel Digital',date:'Mar 2022 &ndash; Present',era:'IC TO LEAD',
+   story:'Joined thinking enterprise. Thought it was a mistake for the first few months. It wasn\'t. Met great mentors. Learned to execute at insane scale. Shifted fully to platform. Mentored junior PMs. Then promoted. Then promoted again &mdash; DGM, Dec 2024. Owning larger platforms. Learning to influence at enterprise scale. Still going.'}
+];
+
+var FINISH_X=8400;
+var MILE_META=DATA.filter(function(d){return d.type==='milestone';}).map(function(d){return{emoji:d.emoji,era:d.era};});
+
+/* STATE */
+var posX=0,posY=0,velY=0,jumping=false,active=false,score=0;
+var SPEED=9,GRAV=1.2,JUMP=22;
+var keys={};
+var currentEra='';
+var stepTimer=0;
+var exclaimTimer=null;
+var cinematicActive=false;
+var cinematicTriggered={};
+
+/* BUILD WORLD */
+var worldEl=document.getElementById('world');
+document.getElementById('finish-flag').style.left=FINISH_X+'px';
+var mileEras=DATA.filter(function(d){return d.type==='milestone';});
+
+DATA.forEach(function(d){
+  var el=document.createElement('div');
+  el.style.left=d.x+'px';
+  if(d.type==='milestone'){
+    el.className='milestone';el.dataset.era=d.era;
+    el.dataset.emoji=d.emoji;el.dataset.role=d.role;
+    var vol=mileEras.findIndex(function(m){return m.era===d.era;})+1;
+    el.innerHTML='<div class="sign-board"><div class="sign-header"><span class="sign-paper-name">THE CAREER GAZETTE</span><span class="sign-edition">VOL.'+vol+'</span></div><div class="sign-body"><span class="sign-icon">'+d.emoji+'</span><div class="sign-role">'+d.role+'</div><div class="sign-co">'+d.co+'</div><div class="sign-date">'+d.date+'</div><div class="sign-rule"></div><div class="sign-story">'+d.story+'</div></div></div><div class="sign-post"></div>';
+  }else{
+    el.className='coin-wrap';
+    el.dataset.skill=d.skill;
+    var lbl=document.createElement('div');lbl.className='skill-lbl';lbl.textContent=d.skill;
+    var coinDiv=document.createElement('div');coinDiv.className='coin';coinDiv.dataset.collected='false';
+    coinDiv.appendChild(makePixelCoin());
+    var arrow=document.createElement('span');arrow.className='coin-arrow';arrow.textContent='\u2191';
+    el.appendChild(lbl);el.appendChild(coinDiv);el.appendChild(arrow);
+  }
+  worldEl.appendChild(el);
+});
+
+/* CINEMATIC — between Stanza and Airtel */
+function triggerCinematic(msg){
+  if(cinematicActive)return;
+  cinematicActive=true;
+  var ov=document.getElementById('cinematic-overlay');
+  var tx=document.getElementById('cinematic-text');
+  tx.textContent=msg;
+  ov.classList.add('on');
+  setTimeout(function(){tx.classList.add('on');},400);
+  setTimeout(function(){tx.classList.remove('on');},2200);
+  setTimeout(function(){ov.classList.remove('on');cinematicActive=false;},3000);
+}
+
+/* SKILL FLASH */
+function flashSkill(name){
+  var sf=document.getElementById('skill-flash');
+  document.getElementById('sf-name').textContent=name;
+  sf.classList.remove('hide');sf.classList.add('show');
+  setTimeout(function(){sf.classList.remove('show');sf.classList.add('hide');},1600);
+}
+
+/* EXCLAIM */
+function showExclaim(){
+  var ex=document.getElementById('exclaim');
+  ex.classList.add('show');
+  clearTimeout(exclaimTimer);
+  exclaimTimer=setTimeout(function(){ex.classList.remove('show');},900);
+}
+
+/* RECAP */
+function buildRecap(){
+  var wrap=document.getElementById('ec-recap');
+  wrap.innerHTML='';
+  MILE_META.forEach(function(m,i){
+    var item=document.createElement('div');
+    item.className='ec-recap-item';
+    item.innerHTML='<span class="ec-recap-icon">'+m.emoji+'</span><span class="ec-recap-era">'+m.era+'</span>';
+    wrap.appendChild(item);
+    setTimeout(function(){item.classList.add('show');},i*120);
+  });
+}
+
+/* START */
+function startGame(){
+  active=true;
+  beep('game-start');
+  document.getElementById('game-title').classList.add('show');
+  document.getElementById('hud').style.display='block';
+  var p=document.getElementById('player');
+  requestAnimationFrame(function(){requestAnimationFrame(function(){p.classList.add('enter');});});
+}
+
+/* INPUT */
+document.addEventListener('keydown',function(e){
+  keys[e.key]=true;
+  if(e.key===' '||e.key==='ArrowUp'){
+    e.preventDefault();
+    if(bootReady&&!active){dismissBoot();return;}
+    if(active&&!jumping){jumping=true;velY=JUMP;beep('jump');}
+  }
+});
+document.addEventListener('keyup',function(e){keys[e.key]=false;});
+
+/* LOOP */
+var playerEl=document.getElementById('player');
+function update(){
+  if(!active){requestAnimationFrame(update);return;}
+  var mR=keys['ArrowRight']||keys['d']||keys['D'];
+  var mL=keys['ArrowLeft']||keys['a']||keys['A'];
+  if(mR)posX+=SPEED;
+  if(mL&&posX>0)posX-=SPEED;
+  if((mR||mL)&&!jumping){stepTimer++;if(stepTimer%18===0)beep('step');}else{stepTimer=0;}
+  velY-=GRAV;posY+=velY;
+  if(posY<=0){posY=0;jumping=false;velY=0;}
+  worldEl.style.transform='translateX(-'+posX+'px)';
+  if(window.drawMtns)drawMtns(posX);
+  playerEl.style.bottom=(96+posY)+'px';
+  if(jumping){playerEl.classList.remove('walk');playerEl.classList.add('jump');}
+  else if(mR||mL){playerEl.classList.remove('jump');playerEl.classList.add('walk');}
+  else{playerEl.classList.remove('walk','jump');}
+
+  var pMid=posX+190+26;
+
+  /* milestones */
+  document.querySelectorAll('.milestone').forEach(function(m){
+    var mx=parseInt(m.style.left)+150;
+    var near=Math.abs(pMid-mx)<200;
+    var wasActive=m.classList.contains('active');
+    m.classList.toggle('active',near);
+    if(near){
+      if(!wasActive)showExclaim();
+      if(m.dataset.era&&m.dataset.era!==currentEra){
+        currentEra=m.dataset.era;
+        document.getElementById('hud-era').textContent=currentEra;
+      }
+    }
+  });
+
+  /* cinematic beat — between Stanza and Airtel */
+  if(posX>6400&&posX<6500&&!cinematicTriggered['airtel']){
+    cinematicTriggered['airtel']=true;
+    triggerCinematic('2022 \u2014 BIGGEST LEAP YET');
+  }
+
+  /* coins */
+  document.querySelectorAll('.coin').forEach(function(coin){
+    if(coin.dataset.collected==='true')return;
+    var w=coin.closest('.coin-wrap');if(!w)return;
+    var cx=parseInt(w.style.left)+40;
+    if(Math.abs(pMid-cx)<46&&posY>100){
+      coin.dataset.collected='true';
+      w.style.transition='transform .5s,opacity .5s';
+      w.style.transform='translateY(-70px)';w.style.opacity='0';
+      score+=100;document.getElementById('hud-score').textContent=score;
+      beep('coin');
+      flashSkill(w.dataset.skill||'SKILL');
+    }
+  });
+
+  var pct=Math.min(Math.floor(posX/FINISH_X*100),100);
+  document.getElementById('hud-prog').style.width=pct+'%';
+  document.getElementById('hud-pct').textContent=pct+'%';
+
+  if(posX>=FINISH_X){
+    active=false;beep('win');
+    setTimeout(function(){
+      document.getElementById('ec-score').textContent=score;
+      document.getElementById('ec-pts-label').textContent=score+' PTs';
+      buildRecap();
+      document.getElementById('end-modal').classList.add('show');
+    },700);
+    return;
+  }
+  requestAnimationFrame(update);
+}
+
+/* COPY */
+function setupCopy(id){
+  var btn=document.getElementById(id);if(!btn)return;
+  btn.addEventListener('click',function(){
+    var orig=this.textContent;
+    navigator.clipboard.writeText(EM).catch(function(){
+      var t=document.createElement('textarea');t.value=EM;
+      document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();
+    });
+    this.textContent='\u2713';setTimeout(function(){btn.textContent=orig;},2000);
+  });
+}
+setupCopy('copy-btn');
+setupCopy('mob-copy-btn');
+
+update();
+</script>
+</body>
+</html>
